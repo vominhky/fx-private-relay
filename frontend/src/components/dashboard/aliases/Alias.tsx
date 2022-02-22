@@ -20,6 +20,7 @@ import { renderDate } from "../../../functions/renderDate";
 import { AliasDeletionButton } from "./AliasDeletionButton";
 import { getRuntimeConfig } from "../../../config";
 import { getLocale } from "../../../functions/getLocale";
+import { BlockLevel, BlockLevelSlider } from "./BlockLevelSlider";
 
 export type Props = {
   alias: AliasData;
@@ -106,10 +107,47 @@ export const Alias = (props: Props) => {
     compactDisplay: "short",
   });
 
+  // We have the <BlockLevelSlider> for Premium users, so don't show the toggle
+  // for them:
+  const toggleButton = props.profile.has_premium ? (
+    // An empty space can take the cell in the grid layout that otherwise
+    // would have been taken by the <button>:
+    <span />
+  ) : (
+    <button
+      {...buttonProps}
+      ref={toggleButtonRef}
+      className={styles.toggleButton}
+      aria-label={l10n.getString(
+        toggleButtonState.isSelected
+          ? "profile-label-disable-forwarding-button"
+          : "profile-label-enable-forwarding-button"
+      )}
+    ></button>
+  );
+
+  const setBlockLevel = (blockLevel: BlockLevel) => {
+    if (blockLevel === "none") {
+      return props.onUpdate({ enabled: true, block_list_emails: false });
+    }
+    if (blockLevel === "promotional") {
+      return props.onUpdate({ enabled: true, block_list_emails: true });
+    }
+    if (blockLevel === "all") {
+      return props.onUpdate({ enabled: false, block_list_emails: true });
+    }
+  };
+
+  const blockLevelSlider = props.profile.has_premium ? (
+    <div className={styles.row}>
+      <BlockLevelSlider alias={props.alias} onChange={setBlockLevel} />
+    </div>
+  ) : null;
+
   return (
     <div
       className={`${styles.aliasCard} ${
-        toggleButtonState.isSelected ? styles.isEnabled : styles.isDisabled
+        props.alias.enabled ? styles.isEnabled : styles.isDisabled
       } ${
         expandButtonState.isSelected ? styles.isExpanded : styles.isCollapsed
       }`}
@@ -121,16 +159,7 @@ export const Alias = (props: Props) => {
     >
       <div className={styles.mainData}>
         <div className={styles.controls}>
-          <button
-            {...buttonProps}
-            ref={toggleButtonRef}
-            className={styles.toggleButton}
-            aria-label={l10n.getString(
-              toggleButtonState.isSelected
-                ? "profile-label-disable-forwarding-button"
-                : "profile-label-enable-forwarding-button"
-            )}
-          ></button>
+          {toggleButton}
           {labelEditor}
           <span className={styles.copyControls}>
             <span className={styles.copyButtonWrapper}>
@@ -190,21 +219,24 @@ export const Alias = (props: Props) => {
         </div>
       </div>
       <div className={styles.secondaryData}>
-        <dl>
-          <div className={`${styles.forwardTarget} ${styles.metadata}`}>
-            <dt>{l10n.getString("profile-label-forward-emails")}</dt>
-            <dd>{props.user.email}</dd>
-          </div>
-          <div className={`${styles.dateCreated} ${styles.metadata}`}>
-            <dt>{l10n.getString("profile-label-created")}</dt>
-            <dd>{renderDate(props.alias.created_at, l10n)}</dd>
-          </div>
-        </dl>
-        <AliasDeletionButton
-          onDelete={props.onDelete}
-          alias={props.alias}
-          profile={props.profile}
-        />
+        {blockLevelSlider}
+        <div className={styles.row}>
+          <dl>
+            <div className={`${styles.forwardTarget} ${styles.metadata}`}>
+              <dt>{l10n.getString("profile-label-forward-emails")}</dt>
+              <dd>{props.user.email}</dd>
+            </div>
+            <div className={`${styles.dateCreated} ${styles.metadata}`}>
+              <dt>{l10n.getString("profile-label-created")}</dt>
+              <dd>{renderDate(props.alias.created_at, l10n)}</dd>
+            </div>
+          </dl>
+          <AliasDeletionButton
+            onDelete={props.onDelete}
+            alias={props.alias}
+            profile={props.profile}
+          />
+        </div>
       </div>
     </div>
   );

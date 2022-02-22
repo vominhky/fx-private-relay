@@ -1,0 +1,209 @@
+@import "~@mozilla-protocol/core/protocol/css/includes/tokens/dist/index.scss";
+@import "~@mozilla-protocol/core/protocol/css/includes/lib";
+
+$stopLabelHeight: 2rem;
+
+.group {
+  // A CSS variable to enable different values depending on the screen size:
+  --thumbDiameter: 32px;
+
+  @media screen and #{$mq-md} {
+    --thumbDiameter: 24px;
+  }
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  touch-action: none;
+  padding: 0 calc(var(--thumbDiameter) / 2 + #{$spacing-md});
+  width: 100%;
+
+  @media screen and #{$mq-md} {
+    flex-direction: row;
+    gap: $spacing-xl;
+    padding: 0 calc(var(--thumbDiameter) / 2 + #{$spacing-lg});
+  }
+  @media screen and #{$mq-lg} {
+    gap: 10%;
+  }
+
+  .control {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .sliderLabel {
+      padding-bottom: $spacing-md;
+      display: inline-block;
+    }
+
+    .track {
+      $iconHeight: 50px;
+      $trackLineHeight: 4px;
+      --trackLineOffset: calc(
+        #{$iconHeight} + (var(--thumbDiameter) / 2) - (#{$trackLineHeight} / 2)
+      );
+      position: relative;
+      width: 100%;
+      cursor: pointer;
+      padding-top: $iconHeight;
+      padding-bottom: calc(
+        var(--thumbDiameter) + #{$trackLineHeight} + #{$stopLabelHeight}
+      );
+
+      .trackLine {
+        position: absolute;
+        background-color: $color-light-gray-20;
+        height: $trackLineHeight;
+        top: var(--trackLineOffset);
+
+        width: 100%;
+      }
+
+      .trackStop {
+        width: var(--thumbDiameter);
+        height: var(--thumbDiameter);
+        border-radius: 50%;
+        background-color: $color-light-gray-20;
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background-color: $color-purple-10;
+
+          img {
+            filter: grayscale(0%);
+          }
+
+          p {
+            color: $color-purple-30;
+          }
+        }
+
+        img {
+          filter: grayscale(100%) brightness(150%);
+          margin-top: calc(-1 * #{$iconHeight} - var(--thumbDiameter));
+          padding-bottom: $spacing-sm;
+        }
+
+        p {
+          font-family: $font-stack-firefox;
+          color: $color-dark-gray-05;
+          position: absolute;
+          top: calc(var(--thumbDiameter) + #{$spacing-xs});
+          height: $stopLabelHeight;
+        }
+
+        &.isActive {
+          img {
+            filter: grayscale(0%);
+          }
+          p {
+            color: $color-black;
+          }
+        }
+
+        &.trackStopNone {
+          left: calc(-1 * var(--thumbDiameter) / 2);
+        }
+        &.trackStopPromotional {
+          left: calc(50% - var(--thumbDiameter) / 2);
+        }
+        &.trackStopAll {
+          right: calc(-1 * (var(--thumbDiameter) / 2));
+        }
+      }
+
+      .thumbContainer {
+        position: absolute;
+        transform: translateX(-50%);
+        cursor: pointer;
+
+        .thumb {
+          width: var(--thumbDiameter);
+          height: var(--thumbDiameter);
+          border-radius: 50%;
+          background-color: $color-purple-20;
+          border: 4px solid $color-purple-50;
+          box-shadow: $box-shadow-sm;
+
+          &.isFocused {
+            background-color: $color-purple-30;
+            border-color: $color-purple-60;
+          }
+          &.isDragging {
+            // background-color: dimgrey;
+          }
+        }
+      }
+
+      @media screen and #{$mq-md} {
+        padding-top: 0;
+
+        .trackLine {
+          top: calc(var(--trackLineOffset) - #{$iconHeight});
+        }
+
+        .trackStop {
+          img {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+
+  .valueDescription {
+    @include text-body-sm;
+    $arrowEdgeLength: 8px;
+    margin-top: $arrowEdgeLength;
+    background-color: $color-light-gray-10;
+    padding: $spacing-md $spacing-xl;
+    border-radius: $border-radius-md;
+    position: relative;
+    width: 100%;
+
+    &::after {
+      background-color: $color-light-gray-10;
+      height: 2 * $arrowEdgeLength;
+      width: 2 * $arrowEdgeLength;
+      transform: rotate(45deg);
+      content: "";
+      position: absolute;
+      top: -1 * $arrowEdgeLength;
+      left: calc(50% - #{$arrowEdgeLength});
+    }
+
+    a {
+      display: inline-block;
+      color: $color-blue-50;
+      padding-top: $spacing-sm;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    img {
+      display: none;
+    }
+
+    @media screen and #{$mq-md} {
+      display: flex;
+      align-items: center;
+      gap: $spacing-md;
+      background-color: transparent;
+      // The content changes depending on the selected blocking mode,
+      // so if the height would be based on the content, switching blocking modes
+      // would cause a lot of jumping around:
+      min-height: 130px;
+
+      img {
+        display: inline-block;
+      }
+    }
+  }
+}
