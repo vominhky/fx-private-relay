@@ -134,6 +134,7 @@ popover-custom-alias-explainer-generate-button-label = Generate custom alias
 popover-custom-alias-explainer-close-button-label = Close
 # Checkbox the user can click to adjust the block level of the new alias
 popover-custom-alias-explainer-promotional-block-checkbox = Block promotional emails
+popover-custom-alias-explainer-promotional-block-tooltip-trigger = More info
 popover-custom-alias-explainer-promotional-block-tooltip = Enable Block Promotional Emails on an alias to stop marketing emails from reaching your inbox.
 
 # Label for each of the dots representing a tip in a panel in the bottom right-hand corner.

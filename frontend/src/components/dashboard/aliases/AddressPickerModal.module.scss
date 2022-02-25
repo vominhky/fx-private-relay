@@ -92,6 +92,17 @@
       padding: $spacing-lg $spacing-sm 0;
       font-family: $font-stack-firefox;
       accent-color: $color-blue-50;
+
+      .promotionalsBlockingDescription {
+        a {
+          display: block;
+          color: $color-blue-50;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
     }
 
     .buttons {
