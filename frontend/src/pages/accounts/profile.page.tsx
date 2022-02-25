@@ -116,12 +116,16 @@ const Profile: NextPage = () => {
   }
 
   const createAlias = async (
-    options: { type: "random" } | { type: "custom"; address: string }
+    options:
+      | { type: "random" }
+      | { type: "custom"; address: string; blockPromotionals: boolean }
   ) => {
     try {
       let response;
       if (options.type === "custom") {
-        response = await customAliasData.create(options.address);
+        response = await customAliasData.create(options.address, {
+          blockPromotionals: options.blockPromotionals,
+        });
       } else {
         response = await randomAliasData.create();
       }
@@ -207,8 +211,15 @@ const Profile: NextPage = () => {
         {l10n.getString("profile-label-domain")}&nbsp;
         <SubdomainIndicator
           subdomain={profile.subdomain}
-          onCreateAlias={(address: string) =>
-            createAlias({ type: "custom", address: address })
+          onCreateAlias={(
+            address: string,
+            settings: { blockPromotionals: boolean }
+          ) =>
+            createAlias({
+              type: "custom",
+              address: address,
+              blockPromotionals: settings.blockPromotionals,
+            })
           }
         />
       </>

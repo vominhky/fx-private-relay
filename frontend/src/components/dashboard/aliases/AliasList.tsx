@@ -18,7 +18,9 @@ export type Props = {
   user: UserData;
   runtimeData?: RuntimeData;
   onCreate: (
-    options: { type: "random" } | { type: "custom"; address: string }
+    options:
+      | { type: "random" }
+      | { type: "custom"; address: string; blockPromotionals: boolean }
   ) => void;
   onUpdate: (alias: AliasData, updatedFields: Partial<AliasData>) => void;
   onDelete: (alias: AliasData) => void;
