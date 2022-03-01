@@ -33,6 +33,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # defaulting to blank to be production-broken by default
 SECRET_KEY = config('SECRET_KEY', None, cast=str)
 
+SENSITIVE_VARS = []
+
 ON_HEROKU = config('ON_HEROKU', False, cast=bool)
 DEBUG = config('DEBUG', False, cast=bool)
 if DEBUG:
@@ -213,6 +215,7 @@ MIDDLEWARE += [
     'privaterelay.middleware.FxAToRequest',
     'privaterelay.middleware.AddDetectedCountryToResponseHeaders',
     'privaterelay.middleware.StoreFirstVisit',
+    'privaterelay.middleware.RemoveSensitiveVars',
 ]
 
 ROOT_URLCONF = 'privaterelay.urls'
@@ -401,6 +404,7 @@ if REDIS_URL:
     }
     SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
     SESSION_CACHE_ALIAS = 'default'
+settings.SENSITIVE_VARS += ['REDIS_URL',]
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
