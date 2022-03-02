@@ -107,10 +107,13 @@ profile-promo-email-blocking-title = What emails do you want to block?
 profile-promo-email-blocking-option-all = All
 # Block promotional emails sent to a speciic alias
 profile-promo-email-blocking-option-promotionals = Promotionals
+profile-promo-email-blocking-option-promotionals-premiumonly-marker = ({ -brand-name-premium } only)
 # Allow/forward all emails sent to a speciic alias
 profile-promo-email-blocking-option-none = None
 profile-promo-email-blocking-description-all = { -brand-name-relay } is blocking all emails sent to this alias.
 profile-promo-email-blocking-description-promotionals = { -brand-name-relay } will attempt to block promotional emails, while still forwarding emails like receipts and shipping information.
+profile-promo-email-blocking-description-promotionals-locked-label = Available to { -brand-name-relay-premium } subscribers
+profile-promo-email-blocking-description-promotionals-locked-cta = Upgrade now
 profile-promo-email-blocking-description-none = { -brand-name-relay } is not blocking any emails for this alias.
 profile-promo-email-blocking-label-promotionals = Block promotions
 profile-promo-email-blocking-label-none = Block all

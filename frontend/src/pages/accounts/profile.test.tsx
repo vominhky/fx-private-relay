@@ -1,6 +1,6 @@
 import React from "react";
 import { jest, describe, it, expect } from "@jest/globals";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { axe } from "jest-axe";
 import { mockFluentReact } from "../../../__mocks__/modules/fluent__react";
@@ -406,10 +406,12 @@ describe("The dashboard", () => {
     );
     render(<Profile />);
 
-    const aliasToggleButton = screen.getByRole("button", {
-      name: "l10n string: [profile-label-disable-forwarding-button], with vars: {}",
+    const blockLevelSlider = screen.getByRole("slider", {
+      name: "l10n string: [profile-promo-email-blocking-title], with vars: {}",
     });
-    userEvent.click(aliasToggleButton);
+    // The block level is a slider that goes from 0 (block none) to 100 (block
+    // all), with no stops in between:
+    fireEvent.change(blockLevelSlider, { target: { value: 100 } });
 
     expect(updateFn).toHaveBeenCalledWith({ enabled: false, id: 42 });
   });

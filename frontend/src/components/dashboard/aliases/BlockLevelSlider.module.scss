@@ -2,6 +2,8 @@
 @import "~@mozilla-protocol/core/protocol/css/includes/lib";
 
 $stopLabelHeight: 2rem;
+$iconHeight: 50px;
+$trackLineHeight: 4px;
 
 .group {
   // A CSS variable to enable different values depending on the screen size:
@@ -24,7 +26,7 @@ $stopLabelHeight: 2rem;
     padding: 0 calc(var(--thumbDiameter) / 2 + #{$spacing-lg});
   }
   @media screen and #{$mq-lg} {
-    gap: 10%;
+    gap: 20%;
   }
 
   .control {
@@ -39,8 +41,6 @@ $stopLabelHeight: 2rem;
     }
 
     .track {
-      $iconHeight: 50px;
-      $trackLineHeight: 4px;
       --trackLineOffset: calc(
         #{$iconHeight} + (var(--thumbDiameter) / 2) - (#{$trackLineHeight} / 2)
       );
@@ -48,6 +48,8 @@ $stopLabelHeight: 2rem;
       width: 100%;
       cursor: pointer;
       padding-top: $iconHeight;
+      // Note: when modifying this value, make sure to also modify it
+      // in the .isFree section down below:
       padding-bottom: calc(
         var(--thumbDiameter) + #{$trackLineHeight} + #{$stopLabelHeight}
       );
@@ -66,10 +68,12 @@ $stopLabelHeight: 2rem;
         height: var(--thumbDiameter);
         border-radius: 50%;
         background-color: $color-light-gray-20;
+        border: 4px solid transparent;
         position: absolute;
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: $spacing-sm;
 
         &:hover {
           background-color: $color-purple-10;
@@ -87,6 +91,10 @@ $stopLabelHeight: 2rem;
           filter: grayscale(100%) brightness(150%);
           margin-top: calc(-1 * #{$iconHeight} - var(--thumbDiameter));
           padding-bottom: $spacing-sm;
+          // The image should not take up space within the track stop,
+          // so that the lock icon from .trackStopPromotional can be properly
+          // centered:
+          position: absolute;
         }
 
         p {
@@ -98,11 +106,24 @@ $stopLabelHeight: 2rem;
         }
 
         &.isActive {
+          background-color: $color-violet-20;
+          border-color: $color-violet-50;
+        }
+
+        &.isSelected {
           img {
             filter: grayscale(0%);
           }
+          .lockIcon {
+            color: $color-purple-50;
+          }
           p {
             color: $color-black;
+          }
+          &:not(.isActive) {
+            p {
+              color: $color-purple-50;
+            }
           }
         }
 
@@ -126,16 +147,13 @@ $stopLabelHeight: 2rem;
           width: var(--thumbDiameter);
           height: var(--thumbDiameter);
           border-radius: 50%;
-          background-color: $color-purple-20;
-          border: 4px solid $color-purple-50;
           box-shadow: $box-shadow-sm;
 
           &.isFocused {
-            background-color: $color-purple-30;
-            border-color: $color-purple-60;
-          }
-          &.isDragging {
-            // background-color: dimgrey;
+            // The alpha value makes sure the lock icon is still visible for
+            // free users when the thumb is placed on the "Promotionals" level:
+            background-color: rgba($color-purple-30, 0.5);
+            border: 4px solid $color-purple-60;
           }
         }
       }
@@ -148,6 +166,8 @@ $stopLabelHeight: 2rem;
         }
 
         .trackStop {
+          padding: $spacing-xs;
+
           img {
             display: none;
           }
@@ -177,13 +197,30 @@ $stopLabelHeight: 2rem;
       left: calc(50% - #{$arrowEdgeLength});
     }
 
-    a {
-      display: inline-block;
-      color: $color-blue-50;
-      padding-top: $spacing-sm;
+    .valueDescriptionContent {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-xs;
 
-      &:hover {
-        text-decoration: underline;
+      a {
+        display: inline-block;
+        color: $color-blue-50;
+        font-weight: 500;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .lockedMessage {
+        display: flex;
+        align-items: center;
+        gap: $spacing-xs;
+        font-weight: 600;
+
+        .lockIcon {
+          color: $color-light-gray-70;
+        }
       }
     }
 
@@ -199,10 +236,36 @@ $stopLabelHeight: 2rem;
       // The content changes depending on the selected blocking mode,
       // so if the height would be based on the content, switching blocking modes
       // would cause a lot of jumping around:
-      min-height: 130px;
+      min-height: 150px;
 
       img {
         display: inline-block;
+      }
+    }
+  }
+
+  &.isFree {
+    .control .track {
+      // This is like the regular .track's bottom padding, but with
+      // $stopLabelHeight multiplied by 1.5, because there's a "(Premium only)"
+      // line in a smaller font below the "Promotionals" label for free users:
+      padding-bottom: calc(
+        var(--thumbDiameter) + #{$trackLineHeight} + #{$stopLabelHeight * 1.5}
+      );
+
+      .trackStopPromotional {
+        cursor: not-allowed;
+        color: $color-light-gray-70;
+
+        p {
+          color: $color-light-gray-70;
+          text-align: center;
+
+          .premiumOnlyMarker {
+            @include text-body-xs;
+            color: $color-purple-50;
+          }
+        }
       }
     }
   }

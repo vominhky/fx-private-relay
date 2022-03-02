@@ -7,6 +7,7 @@ import {
   useSliderThumb,
   VisuallyHidden,
 } from "react-aria";
+import Link from "next/link";
 import { SliderState, useSliderState } from "react-stately";
 import { event as gaEvent } from "react-ga";
 import styles from "./BlockLevelSlider.module.scss";
@@ -17,12 +18,13 @@ import UmbrellaSemiMobile from "../../../../../static/images/umbrella-semi-mobil
 import UmbrellaOpen from "../../../../../static/images/umbrella-open.svg";
 import UmbrellaOpenMobile from "../../../../../static/images/umbrella-open-mobile.svg";
 import { AliasData } from "../../../hooks/api/aliases";
-import Link from "next/link";
+import { LockIcon } from "../../Icons";
 
 export type BlockLevel = "none" | "promotional" | "all";
 export type Props = {
   alias: AliasData;
   onChange: (blockLevel: BlockLevel) => void;
+  hasPremium: boolean;
 };
 
 /**
@@ -53,7 +55,10 @@ export const BlockLevelSlider = (props: Props) => {
         action: "Toggle Forwarding",
         label: label,
       });
-      return props.onChange(blockLevel);
+      // Free users can't enable Promotional email blocking:
+      if (blockLevel !== "promotional" || props.hasPremium) {
+        return props.onChange(blockLevel);
+      }
     },
     defaultValue: [getSliderValueForAlias(props.alias)],
   };
@@ -65,8 +70,28 @@ export const BlockLevelSlider = (props: Props) => {
     trackRef
   );
 
+  const lockIcon = props.hasPremium ? null : (
+    <LockIcon alt="" width={14} height={16} className={styles.lockIcon} />
+  );
+
+  const premiumOnlyMarker = props.hasPremium ? null : (
+    <>
+      <br />
+      <span className={styles.premiumOnlyMarker}>
+        {l10n.getString(
+          "profile-promo-email-blocking-option-promotionals-premiumonly-marker"
+        )}
+      </span>
+    </>
+  );
+
   return (
-    <div {...groupProps} className={styles.group}>
+    <div
+      {...groupProps}
+      className={`${styles.group} ${
+        props.hasPremium ? styles.isPremium : styles.isFree
+      }`}
+    >
       <div className={styles.control}>
         <label {...labelProps} className={styles.sliderLabel}>
           {sliderSettings.label}
@@ -75,10 +100,15 @@ export const BlockLevelSlider = (props: Props) => {
           <div className={styles.trackLine} />
           <div
             className={`${styles.trackStop} ${styles.trackStopNone} ${
+              props.alias.enabled === true &&
+              props.alias.block_list_emails !== true
+                ? styles.isActive
+                : ""
+            } ${
               getBlockLevelFromSliderValue(
                 sliderState.getThumbValue(onlyThumbIndex)
               ) === "none"
-                ? styles.isActive
+                ? styles.isSelected
                 : ""
             }`}
           >
@@ -87,24 +117,33 @@ export const BlockLevelSlider = (props: Props) => {
           </div>
           <div
             className={`${styles.trackStop} ${styles.trackStopPromotional} ${
+              props.alias.enabled === true &&
+              props.alias.block_list_emails === true
+                ? styles.isActive
+                : ""
+            } ${
               getBlockLevelFromSliderValue(
                 sliderState.getThumbValue(onlyThumbIndex)
               ) === "promotional"
-                ? styles.isActive
+                ? styles.isSelected
                 : ""
             }`}
           >
             <img src={UmbrellaSemiMobile.src} alt="" />
+            {lockIcon}
             <p aria-hidden="true">
               {getLabelForBlockLevel("promotional", l10n)}
+              {premiumOnlyMarker}
             </p>
           </div>
           <div
             className={`${styles.trackStop} ${styles.trackStopAll} ${
+              props.alias.enabled === false ? styles.isActive : ""
+            } ${
               getBlockLevelFromSliderValue(
                 sliderState.getThumbValue(onlyThumbIndex)
               ) === "all"
-                ? styles.isActive
+                ? styles.isSelected
                 : ""
             }`}
           >
@@ -128,13 +167,12 @@ export const BlockLevelSlider = (props: Props) => {
             sliderState.getThumbValue(onlyThumbIndex)
           )}
         />
-        <span>
-          <BlockLevelDescription
-            level={getBlockLevelFromSliderValue(
-              sliderState.getThumbValue(onlyThumbIndex)
-            )}
-          />
-        </span>
+        <BlockLevelDescription
+          level={getBlockLevelFromSliderValue(
+            sliderState.getThumbValue(onlyThumbIndex)
+          )}
+          hasPremium={props.hasPremium}
+        />
       </output>
     </div>
   );
@@ -180,30 +218,61 @@ const Thumb = (props: ThumbProps) => {
   );
 };
 
-const BlockLevelDescription = (props: { level: BlockLevel }) => {
+const BlockLevelDescription = (props: {
+  level: BlockLevel;
+  hasPremium: boolean;
+}) => {
   const { l10n } = useLocalization();
 
   if (props.level === "none") {
     return (
-      <>{l10n.getString("profile-promo-email-blocking-description-none")}</>
+      <span className={styles.valueDescriptionContent}>
+        {l10n.getString("profile-promo-email-blocking-description-none")}
+      </span>
     );
   }
 
-  if (props.level === "promotional") {
+  if (props.level === "promotional" && props.hasPremium) {
     return (
-      <>
+      <span className={styles.valueDescriptionContent}>
         {l10n.getString(
           "profile-promo-email-blocking-description-promotionals"
         )}
-        <br />
         <Link href="/faq#faq-promotional-email-blocking">
           <a>{l10n.getString("banner-label-data-notification-body-cta")}</a>
         </Link>
-      </>
+      </span>
     );
   }
 
-  return <>{l10n.getString("profile-promo-email-blocking-description-all")}</>;
+  if (props.level === "promotional" && !props.hasPremium) {
+    return (
+      <span className={styles.valueDescriptionContent}>
+        <b className={styles.lockedMessage}>
+          <LockIcon alt="" className={styles.lockIcon} />
+          {l10n.getString(
+            "profile-promo-email-blocking-description-promotionals-locked-label"
+          )}
+        </b>
+        {l10n.getString(
+          "profile-promo-email-blocking-description-promotionals"
+        )}
+        <Link href="/premium/">
+          <a>
+            {l10n.getString(
+              "profile-promo-email-blocking-description-promotionals-locked-cta"
+            )}
+          </a>
+        </Link>
+      </span>
+    );
+  }
+
+  return (
+    <span className={styles.valueDescriptionContent}>
+      {l10n.getString("profile-promo-email-blocking-description-all")}
+    </span>
+  );
 };
 const BlockLevelIllustration = (props: { level: BlockLevel }) => {
   if (props.level === "none") {

@@ -17,6 +17,7 @@ export const InfoIcon = ({
       viewBox="0 0 28 28"
       width={28}
       height={28}
+      aria-hidden={alt === ""}
       style={{
         fill: "currentcolor",
         ...props.style,
@@ -42,6 +43,7 @@ export const CloseIcon = ({
       viewBox="0 0 20 20"
       width={20}
       height={20}
+      aria-hidden={alt === ""}
       style={{
         fill: "currentcolor",
         ...props.style,
@@ -50,6 +52,35 @@ export const CloseIcon = ({
     >
       <title>{alt}</title>
       <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"></path>
+    </svg>
+  );
+};
+
+/** Lock icon that inherits the text color of its container */
+export const LockIcon = ({
+  alt,
+  ...props
+}: SVGProps<SVGSVGElement> & { alt: string }) => {
+  const width = props.width ?? 14;
+  const height = props.height ?? 16;
+
+  return (
+    <svg
+      role="img"
+      aria-label={alt}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox={`0 0 ${width} ${height}`}
+      width={width}
+      height={height}
+      aria-hidden={alt === ""}
+      style={{
+        fill: "currentcolor",
+        ...props.style,
+      }}
+      {...props}
+    >
+      <title>{alt}</title>
+      <path d="M12.031 6.84h-.573V4.57a4.566 4.566 0 00-1.342-3.232 4.59 4.59 0 00-6.482 0A4.565 4.565 0 002.292 4.57V6.84h-.573c-.456 0-.893.18-1.216.502A1.712 1.712 0 000 8.554v5.732c0 .454.181.89.503 1.212.323.321.76.502 1.216.502H12.03a1.712 1.712 0 001.719-1.714V8.554c0-.455-.181-.89-.503-1.212a1.721 1.721 0 00-1.216-.502zM4.583 4.57c0-.606.242-1.187.672-1.616a2.295 2.295 0 013.24 0c.43.429.672 1.01.672 1.616V6.84H4.583V4.57z" />
     </svg>
   );
 };
