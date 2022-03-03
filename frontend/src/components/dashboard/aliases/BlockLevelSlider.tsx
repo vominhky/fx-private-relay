@@ -1,14 +1,26 @@
 import { ReactLocalization, useLocalization } from "@fluent/react";
-import { useRef } from "react";
+import { HTMLAttributes, ReactNode, useRef } from "react";
 import {
+  FocusScope,
   mergeProps,
+  OverlayContainer,
+  useButton,
+  useDialog,
   useFocusRing,
+  useModal,
+  useOverlay,
+  useOverlayPosition,
+  useOverlayTrigger,
   useSlider,
   useSliderThumb,
   VisuallyHidden,
 } from "react-aria";
 import Link from "next/link";
-import { SliderState, useSliderState } from "react-stately";
+import {
+  SliderState,
+  useOverlayTriggerState,
+  useSliderState,
+} from "react-stately";
 import { event as gaEvent } from "react-ga";
 import styles from "./BlockLevelSlider.module.scss";
 import UmbrellaClosed from "../../../../../static/images/umbrella-closed.svg";
@@ -18,7 +30,7 @@ import UmbrellaSemiMobile from "../../../../../static/images/umbrella-semi-mobil
 import UmbrellaOpen from "../../../../../static/images/umbrella-open.svg";
 import UmbrellaOpenMobile from "../../../../../static/images/umbrella-open-mobile.svg";
 import { AliasData } from "../../../hooks/api/aliases";
-import { LockIcon } from "../../Icons";
+import { CloseIcon, LockIcon } from "../../Icons";
 
 export type BlockLevel = "none" | "promotional" | "all";
 export type Props = {
@@ -39,7 +51,7 @@ export const BlockLevelSlider = (props: Props) => {
   const sliderSettings: Parameters<typeof useSliderState>[0] = {
     minValue: 0,
     maxValue: 100,
-    step: 50,
+    step: props.hasPremium ? 50 : 100,
     numberFormatter: numberFormatter,
     label: l10n.getString("profile-promo-email-blocking-title"),
     onChange: (value) => {
@@ -115,27 +127,18 @@ export const BlockLevelSlider = (props: Props) => {
             <img src={UmbrellaClosedMobile.src} alt="" />
             <p aria-hidden="true">{getLabelForBlockLevel("none", l10n)}</p>
           </div>
-          <div
-            className={`${styles.trackStop} ${styles.trackStopPromotional} ${
-              props.alias.enabled === true &&
-              props.alias.block_list_emails === true
-                ? styles.isActive
-                : ""
-            } ${
-              getBlockLevelFromSliderValue(
-                sliderState.getThumbValue(onlyThumbIndex)
-              ) === "promotional"
-                ? styles.isSelected
-                : ""
-            }`}
+          <PromotionalTrackStop
+            alias={props.alias}
+            sliderState={sliderState}
+            hasPremium={props.hasPremium}
           >
             <img src={UmbrellaSemiMobile.src} alt="" />
             {lockIcon}
-            <p aria-hidden="true">
+            <p>
               {getLabelForBlockLevel("promotional", l10n)}
               {premiumOnlyMarker}
             </p>
-          </div>
+          </PromotionalTrackStop>
           <div
             className={`${styles.trackStop} ${styles.trackStopAll} ${
               props.alias.enabled === false ? styles.isActive : ""
@@ -284,6 +287,160 @@ const BlockLevelIllustration = (props: { level: BlockLevel }) => {
   }
 
   return <img src={UmbrellaOpen.src} alt="" />;
+};
+
+type PromotionalTrackStopProps = {
+  alias: AliasData;
+  sliderState: SliderState;
+  hasPremium: boolean;
+  children: ReactNode;
+};
+/**
+ * This is a regular track stop for Premium users, but turns into a tooltip
+ * trigger for non-Premium users.
+ */
+const PromotionalTrackStop = (props: PromotionalTrackStopProps) => {
+  const overlayTriggerState = useOverlayTriggerState({});
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const { triggerProps, overlayProps } = useOverlayTrigger(
+    {
+      type: "dialog",
+    },
+    overlayTriggerState,
+    triggerRef
+  );
+  const { buttonProps } = useButton(
+    { onPress: () => overlayTriggerState.open() },
+    triggerRef
+  );
+
+  if (!props.hasPremium) {
+    return (
+      <span className={styles.wrapper}>
+        <button
+          {...buttonProps}
+          {...triggerProps}
+          ref={triggerRef}
+          type="button"
+          className={`${styles.trackStop} ${styles.trackStopPromotional} ${
+            overlayTriggerState.isOpen ? styles.isSelected : ""
+          }`}
+        >
+          {props.children}
+        </button>
+        {overlayTriggerState.isOpen && (
+          <OverlayContainer>
+            <PromotionalTooltip
+              onClose={overlayTriggerState.close}
+              triggerRef={triggerRef}
+              overlayProps={overlayProps}
+            />
+          </OverlayContainer>
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <div
+      className={`${styles.trackStop} ${styles.trackStopPromotional} ${
+        props.alias.enabled === true && props.alias.block_list_emails === true
+          ? styles.isActive
+          : ""
+      } ${
+        getBlockLevelFromSliderValue(
+          props.sliderState.getThumbValue(onlyThumbIndex)
+        ) === "promotional"
+          ? styles.isSelected
+          : ""
+      }`}
+    >
+      {props.children}
+    </div>
+  );
+};
+
+type PromotionalTooltipProps = {
+  onClose: () => void;
+  triggerRef: React.RefObject<HTMLButtonElement>;
+  overlayProps: HTMLAttributes<HTMLDivElement>;
+};
+const PromotionalTooltip = (props: PromotionalTooltipProps) => {
+  const { l10n } = useLocalization();
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const { overlayProps, underlayProps } = useOverlay(
+    { isOpen: true, onClose: props.onClose, isDismissable: true },
+    overlayRef
+  );
+
+  const { modalProps } = useModal();
+
+  const { dialogProps, titleProps } = useDialog({}, overlayRef);
+
+  const overlayPositionProps = useOverlayPosition({
+    targetRef: props.triggerRef,
+    overlayRef: overlayRef,
+    placement: "bottom left",
+    offset: 60,
+  }).overlayProps;
+
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const closeButtonProps = useButton(
+    {
+      onPress: () => props.onClose(),
+    },
+    closeButtonRef
+  ).buttonProps;
+
+  return (
+    <div {...underlayProps} className={styles.upgradeTooltipUnderlay}>
+      <FocusScope restoreFocus contain autoFocus>
+        <div
+          {...mergeProps(
+            overlayProps,
+            dialogProps,
+            props.overlayProps,
+            overlayPositionProps,
+            modalProps
+          )}
+          ref={overlayRef}
+          className={styles.upgradeTooltip}
+        >
+          <img src={UmbrellaSemi.src} alt="" />
+          <span className={styles.upgradeMessage}>
+            <b className={styles.lockedMessage} {...titleProps}>
+              <LockIcon alt="" className={styles.lockIcon} />
+              {l10n.getString(
+                "profile-promo-email-blocking-description-promotionals-locked-label"
+              )}
+            </b>
+            {l10n.getString(
+              "profile-promo-email-blocking-description-promotionals"
+            )}
+            <Link href="/premium/">
+              <a>
+                {l10n.getString(
+                  "profile-promo-email-blocking-description-promotionals-locked-cta"
+                )}
+              </a>
+            </Link>
+          </span>
+          <button
+            {...closeButtonProps}
+            ref={closeButtonRef}
+            className={styles.closeButton}
+          >
+            <CloseIcon
+              alt={l10n.getString(
+                "profile-promo-email-blocking-description-promotionals-locked-close"
+              )}
+            />
+          </button>
+        </div>
+      </FocusScope>
+    </div>
+  );
 };
 
 function getSliderValueForAlias(alias: AliasData): number {

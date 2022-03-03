@@ -114,6 +114,7 @@ profile-promo-email-blocking-description-all = { -brand-name-relay } is blocking
 profile-promo-email-blocking-description-promotionals = { -brand-name-relay } will attempt to block promotional emails, while still forwarding emails like receipts and shipping information.
 profile-promo-email-blocking-description-promotionals-locked-label = Available to { -brand-name-relay-premium } subscribers
 profile-promo-email-blocking-description-promotionals-locked-cta = Upgrade now
+profile-promo-email-blocking-description-promotionals-locked-close = Close
 profile-promo-email-blocking-description-none = { -brand-name-relay } is not blocking any emails for this alias.
 profile-promo-email-blocking-label-promotionals = Block promotions
 profile-promo-email-blocking-label-none = Block all
