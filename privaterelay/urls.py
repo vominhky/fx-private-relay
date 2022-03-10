@@ -51,6 +51,19 @@ urlpatterns = [
     path('premium', views.premium_promo, name='premium-promo'),
     path('', views.home, name='home'),
     path('api/', include('api.urls')),
+
+    path(
+        '.well-known/repute-template',
+        views.repute_template,
+        name='repute_template'
+    ),
+    path('<application>/<subject>', views.reputons, name='reputons'),
+    path(
+        '<application>/<subject>/<requested_assertions>',
+        views.reputons,
+        name='reputons'
+    ),
+    path('.well-known/openrep/<address>', views.openrep, name='openrep'),
 ]
 
 if settings.DEBUG:
